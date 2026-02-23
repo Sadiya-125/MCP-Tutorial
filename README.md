@@ -1,12 +1,10 @@
 # MCP Teaching Repository
 
-A progressive tutorial for understanding the **Modular Context Protocol (MCP)** through incrementally evolving code.
+A progressive tutorial for understanding the **Modular Context Protocol (MCP)**!
 
 ## Branch: v12-final-mcp (also `main`)
 
 This is the **complete MCP implementation** with server, client, and all components integrated.
-
----
 
 ## What is MCP?
 
@@ -18,14 +16,12 @@ The Modular Context Protocol separates AI assistant concerns into:
 - **Feedback** - Self-reflection and correction
 - **Tools** - File, editor, git, and codebase integration
 
----
-
 ## Quick Start
 
 ```bash
 # Clone and checkout
-git clone <repo-url>
-cd mcp-teaching-repo
+git clone https://github.com/Sadiya-125/MCP-Tutorial.git
+cd MCP-Tutorial
 
 # Install dependencies
 pip install -r requirements.txt
@@ -40,8 +36,6 @@ python main.py
 python server.py  # MCP Server (JSON-RPC)
 python client.py  # MCP Client demo
 ```
-
----
 
 ## Branch Progression
 
@@ -61,8 +55,6 @@ Learn MCP concepts progressively:
 | `v10-file-docking` | File access | Read files and editor state |
 | `v11-codebase-aware` | Multi-file | Project-wide reasoning |
 | `v12-final-mcp` | Complete system | Full MCP server + client |
-
----
 
 ## Architecture (v12)
 
@@ -101,8 +93,6 @@ mcp-teaching-repo/
     └── comparison.py
 ```
 
----
-
 ## MCP Server Resources & Tools
 
 ### Resources (read-only)
@@ -114,8 +104,6 @@ mcp-teaching-repo/
 - `add_todo` - Add item to TODO.md
 - `read_file` - Read file contents
 - `analyze_codebase` - Analyze project structure
-
----
 
 ## Learning Path
 
@@ -134,8 +122,6 @@ git checkout v4-mcp-roles
 python main.py
 ```
 
----
-
 ## Key Concepts
 
 ### Context Separation
@@ -152,13 +138,3 @@ Pipelines ensure consistent, predictable behavior.
 
 ### Guardrails
 Safety constraints prevent harmful actions.
-
----
-
-## License
-
-MIT - Use freely for learning and teaching MCP concepts.
-
----
-
-Built for teaching the Modular Context Protocol.
