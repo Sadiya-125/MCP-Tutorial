@@ -1,28 +1,22 @@
 # MCP Teaching Repository
 
-## Branch: v8-feedback-loop
+## Branch: v9-prompt-vs-mcp
 
-This is **Lab 8 - Feedback Loops & Iterative Refinement**: Adding self-reflection so the assistant can improve during execution.
+This is **Lab 9 - Prompting vs MCP**: Empirically comparing long prompts with MCP-driven context.
 
-### Key Changes from v7
-- Added `feedback/` package with reviewer and error tracker
-- Output quality review
-- Error tracking for learning
-
-### New Files
-```
-feedback/
-├── __init__.py
-├── reviewer.py      # Output quality review
-└── error_tracker.py # Error tracking
-```
+### Key Changes from v8
+- Added `experiments/` package with comparison tool
+- Run side-by-side comparisons
+- Measure token savings and consistency
 
 ### Commands
-- `review` - Review last output quality
-- `errors` - View tracked errors
-- `quality` - View average quality score
+- `compare` - Run prompt vs MCP comparison
+- `summary` - View comparison summary
 
-The assistant now **improves during execution**!
+### Why MCP Wins at Scale
+- **Cost**: Fewer tokens needed
+- **Reliability**: More consistent responses
+- **Predictability**: Same context = same behavior
 
 ---
 
@@ -30,15 +24,4 @@ The assistant now **improves during execution**!
 
 | Branch | Description |
 |--------|-------------|
-| `v1-prompt-baseline` | Naive prompt-based assistant |
-| `v2-structured-context` | Externalizing context |
-| `v3-goal-agent` | Goal-oriented agent |
-| `v4-mcp-roles` | MCP role architecture |
-| `v5-memory-guardrails` | Persistent memory + safety |
-| `v6-context-hierarchy` | Context hierarchy |
-| `v7-execution-flow` | Execution pipeline |
-| `v8-feedback-loop` | Self-reflecting assistant (current) |
-| `v9-prompt-vs-mcp` | Prompt reduction experiment |
-| `v10-file-docking` | Editor and file dock |
-| `v11-codebase-aware` | Codebase-aware assistant |
-| `v12-final-mcp` | Final MCP docked system |
+| `v1-prompt-baseline` - `v12-final-mcp` | Progressive MCP implementation |

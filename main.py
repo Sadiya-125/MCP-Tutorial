@@ -1,40 +1,31 @@
 """
-Lab 8: Feedback Loops & Iterative Refinement
-=============================================
-Building on Lab 7, we add self-reflection and error tracking.
-
-Key Changes from Lab 7:
-- Added feedback/ package with reviewer and error tracker
-- Output review for quality assessment
-- Error tracking for learning from mistakes
+Lab 9: Prompting vs MCP (Proof Week)
+====================================
+Empirically compare long prompts with MCP-driven context.
 """
 
 from mcp import Orchestrator
 from execution.pipeline import create_mcp_pipeline
 from feedback import OutputReviewer, ErrorTracker
+from experiments import PromptVsMCPComparison
 
 
 def main():
-    """Main loop with feedback and self-correction."""
+    """Main loop with comparison experiment."""
     print("=" * 60)
-    print("Lab 8: Feedback Loops & Iterative Refinement")
+    print("Lab 9: Prompting vs MCP Comparison")
     print("=" * 60)
-    print("\nThe assistant now SELF-REFLECTS and IMPROVES.")
+    print("\nCompare prompt-only vs MCP approaches empirically.")
     print("\nCommands:")
-    print("  'review' - Review last output quality")
-    print("  'errors' - View tracked errors")
-    print("  'quality' - View average quality score")
-    print("  'pipeline' - View pipeline status")
+    print("  'compare' - Run prompt vs MCP comparison")
+    print("  'summary' - View comparison summary")
+    print("  'status' - View system status")
     print("  'quit' - Exit")
     print("\n" + "-" * 60 + "\n")
 
     orchestrator = Orchestrator(use_persistent_memory=True)
     pipeline = create_mcp_pipeline(orchestrator)
-    reviewer = OutputReviewer()
-    error_tracker = ErrorTracker()
-
-    last_output = ""
-    last_query = ""
+    comparison = PromptVsMCPComparison()
 
     while True:
         try:
@@ -48,53 +39,31 @@ def main():
                 print("Goodbye!")
                 break
 
-            if lower_input == 'review' and last_output:
-                result = reviewer.review(last_output, last_query)
-                print(f"\nQuality Score: {result.quality_score:.2f}")
-                if result.issues:
-                    print(f"Issues: {', '.join(result.issues)}")
-                if result.suggestions:
-                    print(f"Suggestions: {', '.join(result.suggestions)}")
-                print()
+            if lower_input == 'compare':
+                print("\nRunning comparison experiment...")
+                result = comparison.run_preset_comparison()
+                print(f"\n=== Results ===")
+                print(f"Long Prompt: {result.prompt_tokens} tokens, {result.prompt_time_ms:.0f}ms")
+                print(f"MCP Approach: {result.mcp_tokens} tokens, {result.mcp_time_ms:.0f}ms")
+                print(f"Token Savings: {result.token_savings:.1f}%")
+                print(f"Time Savings: {result.time_savings:.1f}%\n")
                 continue
 
-            if lower_input == 'errors':
-                print(f"\n{error_tracker.to_context_string()}")
-                stats = error_tracker.get_stats()
-                print(f"Total: {stats['total']}, Unresolved: {stats['unresolved']}\n")
-                continue
-
-            if lower_input == 'quality':
-                avg = reviewer.get_average_quality()
-                print(f"\nAverage Quality: {avg:.2f}")
-                issues = reviewer.get_common_issues()
-                if issues:
-                    print(f"Common Issues: {', '.join(issues)}")
-                print()
-                continue
-
-            if lower_input == 'pipeline':
-                print(f"\n{pipeline.get_status()}\n")
+            if lower_input == 'summary':
+                print(f"\n{comparison.get_summary()}\n")
                 continue
 
             if lower_input == 'status':
                 print(f"\n{orchestrator.get_status()}\n")
                 continue
 
-            # Execute through pipeline
-            last_query = user_input
+            # Regular execution
             result = pipeline.execute({"user_input": user_input})
-
             if result.success:
-                last_output = str(result.output)
                 print(f"\nAssistant: {result.output}\n")
             else:
-                error_tracker.track("pipeline_error", result.error or "Unknown error")
                 print(f"\nError: {result.error}\n")
 
-        except Exception as e:
-            error_tracker.track("exception", str(e))
-            print(f"\nError: {e}\n")
         except KeyboardInterrupt:
             print("\nGoodbye!")
             break
