@@ -1,21 +1,23 @@
 # MCP Teaching Repository
 
-## Branch: v10-file-docking
+## Branch: v11-codebase-aware
 
-This is **Lab 10 - Editor & File Docking**: Connecting the assistant to files and editor context.
+This is **Lab 11 - Codebase-Aware**: Multi-file understanding and project-wide reasoning.
 
-### Key Changes from v9
-- Added `tools/` package with file reader and editor context
-- Read-only file access
-- Editor state tracking (active file, selection)
+### Key Changes from v10
+- Added `analysis/` package with CodebaseAnalyzer
+- Multi-file understanding capability
+- Find files, functions, and classes across the project
+- Codebase context injection into prompts
 
 ### Commands
-- `read <file>` - Read a file
-- `list [dir]` - List files
-- `open <file>` - Set active file
-- `editor` - View editor context
+- `analyze [path]` - Analyze a codebase
+- `find <name>` - Find files by name
+- `func <name>` - Find functions by name
+- `class <name>` - Find classes by name
+- `context` - View codebase context
 
-**Primary docking use case achieved!**
+**Junior developer behavior achieved!**
 
 ---
 
