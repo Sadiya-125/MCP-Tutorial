@@ -1,21 +1,21 @@
 # MCP Teaching Repository
 
-## Branch: v2-structured-context
+## Branch: v3-goal-agent
 
-This is **Lab 2 - Externalizing Context**: Separating prompts from context by moving task details and state into a structured context object.
+This is **Lab 3 - From Chatbot to Agent**: Adding goals and a basic task loop so the assistant works step-by-step instead of responding once.
 
 ### Learning Objectives
-- Distinguish between prompts, context, and memory
-- Externalize context from prompts into structured data
-- Reduce prompt length without losing behavior
+- Explain the difference between reactive and goal-driven AI systems
+- Implement a task-oriented agent loop
+- Describe how agent behavior emerges from context and goals
 
-### Key Changes from v1
-- Added `context.py` with structured context objects
-- Prompts are now minimal - context is injected separately
-- The assistant can "remember" within a session
+### Key Changes from v2
+- Added `agent.py` with Goal and Agent classes
+- Agent can decompose goals into steps
+- Step-by-step execution with progress tracking
 
 ### New Files
-- `context.py` - Structured context with TaskInfo, FileInfo, and Context classes
+- `agent.py` - Goal-oriented agent with planning and execution
 
 ### Setup
 
@@ -26,45 +26,51 @@ python main.py
 
 ### Try These Experiments
 
-1. Set your context:
+1. Set a goal:
    ```
-   my name is Alice
-   task: Build a REST API
-   working on api.py
-   using FastAPI
+   goal: Create a Python function to validate email addresses
    ```
 
-2. Ask questions that reference context:
+2. View the generated plan:
    ```
-   What am I working on?
-   What's my current task?
+   status
    ```
 
-3. View the structured context:
+3. Execute step by step:
    ```
-   context
+   next
+   next
+   next
+   ```
+
+4. Or run all steps automatically:
+   ```
+   goal: Build a simple calculator class
+   run all
    ```
 
 ### Key Concepts
 
-**Before (v1):**
-```python
-# Everything in the prompt
-prompt = "I'm Alice, working on api.py using FastAPI, building a REST API..."
+**Reactive Chatbot (v1-v2):**
+```
+User: "How do I validate emails?"
+Bot: [Answers question]
+User: "Now add error handling"
+Bot: [Doesn't remember previous context]
 ```
 
-**After (v2):**
-```python
-# Structured context object
-context = Context(
-    user_name="Alice",
-    task=TaskInfo(description="Build a REST API"),
-    file_info=FileInfo(current_file="api.py", framework="FastAPI")
-)
-# Prompt is minimal - context injected separately
+**Goal-Driven Agent (v3):**
+```
+User: "goal: Create email validation with error handling"
+Agent: [Plans steps]
+  1. Create base validation function
+  2. Add regex pattern matching
+  3. Add error handling
+  4. Write tests
+Agent: [Executes each step, maintaining context]
 ```
 
-This is the **first MCP-style separation** - prompts become minimal!
+The assistant now **acts** towards goals, not just **responds** to questions!
 
 ---
 
@@ -73,8 +79,8 @@ This is the **first MCP-style separation** - prompts become minimal!
 | Branch | Lab | Description |
 |--------|-----|-------------|
 | `v1-prompt-baseline` | Lab 1 | Naive prompt-based assistant |
-| `v2-structured-context` | Lab 2 | Externalizing context (current) |
-| `v3-goal-agent` | Lab 3 | Goal-oriented assistant with task loops |
+| `v2-structured-context` | Lab 2 | Externalizing context |
+| `v3-goal-agent` | Lab 3 | Goal-oriented agent (current) |
 | `v4-mcp-roles` | Lab 4 | MCP role architecture skeleton |
 | `v5-memory-guardrails` | Lab 5 | Persistent memory and safety constraints |
 | `v6-context-hierarchy` | Lab 6 | Context blocks and hierarchy |
