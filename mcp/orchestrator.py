@@ -3,9 +3,9 @@ MCP Orchestrator
 ================
 The central coordinator that ties all MCP components together.
 
-Lab 5 Updates:
-- Integrated persistent memory
-- Added guardrails for safety
+Lab 6 Updates:
+- Added context hierarchy (global, project, task, session)
+- Context is now modular and scalable
 """
 
 from typing import Optional
@@ -13,12 +13,13 @@ from .reasoner import Reasoner
 from .tool_handler import ToolHandler, create_default_tools
 from .memory_manager import MemoryManager
 
-# Import new v5 modules
+# Import modules
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from memory.store import PersistentMemory
 from guardrails.rules import GuardRails, RuleResult
+from context.hierarchy import ContextHierarchy
 
 
 class Orchestrator:
@@ -35,6 +36,7 @@ class Orchestrator:
         self.tools = create_default_tools()
         self.session_memory = MemoryManager()  # Ephemeral session memory
         self.guardrails = GuardRails()
+        self.context_hierarchy = ContextHierarchy()  # Lab 6: Context hierarchy
 
         # Use persistent memory if enabled
         if use_persistent_memory:
@@ -166,15 +168,43 @@ class Orchestrator:
             return self._handle_question(user_input, context)
 
     def _get_full_context(self) -> str:
-        """Get combined context from all memory sources."""
+        """Get combined context from all sources including hierarchy."""
         parts = []
 
+        # Add context hierarchy (Lab 6)
+        parts.append(self.context_hierarchy.get_full_context())
+
+        # Add persistent memory
         if self.persistent_memory:
             parts.append(self.persistent_memory.to_context_string())
 
+        # Add session memory
         parts.append(self.session_memory.to_context_string())
 
         return "\n\n".join(parts)
+
+    def set_project(self, name: str, **kwargs) -> str:
+        """Set project context."""
+        self.context_hierarchy.set_project(name, **kwargs)
+        return f"Project set: {name}"
+
+    def set_task(self, title: str, goal: str = "") -> str:
+        """Set task context."""
+        self.context_hierarchy.set_task(title, goal=goal)
+        return f"Task started: {title}"
+
+    def get_context_summary(self) -> str:
+        """Get a summary of the context hierarchy."""
+        summary = self.context_hierarchy.get_summary()
+        lines = ["=== Context Hierarchy ===", ""]
+
+        for level, data in summary.items():
+            lines.append(f"[{level.upper()}]")
+            for key, value in data.items():
+                lines.append(f"  {key}: {value}")
+            lines.append("")
+
+        return "\n".join(lines)
 
     def _handle_command(self, intent: dict, context: str) -> str:
         """Handle command-type intents with guardrails."""

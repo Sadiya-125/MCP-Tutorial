@@ -1,18 +1,17 @@
 """
-Lab 5: State, Memory, and Guardrails
-=====================================
-Building on Lab 4, we add persistent memory and safety constraints.
+Lab 6: Context Design & Hierarchy
+==================================
+Building on Lab 5, we organize context into reusable, hierarchical layers.
 
-Key Changes from Lab 4:
-- Added memory/ package with persistent storage
-- Added guardrails/ package with safety rules
-- Memory survives across sessions
-- Actions are checked against guardrails
+Key Changes from Lab 5:
+- Added context/ package with hierarchy
+- Context levels: Global, Project, Task, Session
+- Modular and scalable context management
 
 Key Learning Points:
-- Persistent vs ephemeral state
-- Why AI needs rules
-- Implementing capability boundaries
+- Global vs local context
+- Reusable context schemas
+- Failure modes from poor context design
 """
 
 from mcp import Orchestrator
@@ -20,35 +19,34 @@ from mcp import Orchestrator
 
 def main():
     """
-    Main interaction loop with persistent memory and guardrails.
+    Main interaction loop with context hierarchy.
 
-    New features:
-    - Memory persists to disk (memory/data/memory.json)
-    - Safety guardrails check all actions
-    - Warnings for potentially sensitive operations
+    Context Layers:
+    1. Global - System-wide settings
+    2. Project - Project-specific context
+    3. Task - Current task context
+    4. Session - Current session state
     """
     print("=" * 60)
-    print("Lab 5: State, Memory, and Guardrails")
+    print("Lab 6: Context Design & Hierarchy")
     print("=" * 60)
-    print("\nThe assistant is now SAFE and PERSISTENT.")
-    print("\nNew Features:")
-    print("  - Memory persists across sessions (to disk)")
-    print("  - Safety guardrails check all actions")
-    print("  - Warnings for sensitive operations")
+    print("\nContext is now MODULAR and SCALABLE.")
+    print("\nContext Layers:")
+    print("  - Global: System-wide settings")
+    print("  - Project: Project-specific context")
+    print("  - Task: Current task context")
+    print("  - Session: Current session state")
     print("\nCommands:")
+    print("  'hierarchy' - View context hierarchy")
+    print("  'project <name>' - Set project name")
+    print("  'project lang <language>' - Set project language")
+    print("  'project framework <framework>' - Set framework")
+    print("  'task: <description>' - Set current task")
     print("  'status' - View system status")
     print("  'memory' - View persistent memory")
-    print("  'guardrails' - View safety rules")
-    print("  'remember <key> <value>' - Store persistently")
-    print("  'recall <key>' - Retrieve from memory")
-    print("  'search <query>' - Search memory")
-    print("  'forget <key>' - Remove from memory")
-    print("  'goal: <description>' - Set a goal")
-    print("  'next' - Execute next step")
     print("  'quit' - Exit")
     print("\n" + "-" * 60 + "\n")
 
-    # Create the MCP orchestrator with persistent memory
     orchestrator = Orchestrator(use_persistent_memory=True)
 
     # Show initial memory state
@@ -66,13 +64,16 @@ def main():
 
             lower_input = user_input.lower()
 
-            # Handle special commands
             if lower_input in ['quit', 'exit', 'q']:
-                print("Goodbye! Your memory has been saved.")
+                print("Goodbye!")
                 break
 
             if lower_input == 'status':
                 print(f"\n{orchestrator.get_status()}\n")
+                continue
+
+            if lower_input == 'hierarchy':
+                print(f"\n{orchestrator.get_context_summary()}\n")
                 continue
 
             if lower_input == 'memory':
@@ -86,12 +87,25 @@ def main():
                 print(f"\n{orchestrator.get_guardrail_status()}\n")
                 continue
 
-            if lower_input == 'tools':
-                tools = orchestrator.tools.list_tools()
-                print("\nAvailable tools:")
-                for t in tools:
-                    print(f"  - {t['name']}: {t['description']}")
-                print()
+            # Project commands
+            if lower_input.startswith('project '):
+                parts = user_input[8:].split(' ', 1)
+                if parts[0].lower() == 'lang' and len(parts) > 1:
+                    orchestrator.context_hierarchy.project_ctx.language = parts[1]
+                    print(f"\nProject language set to: {parts[1]}\n")
+                elif parts[0].lower() == 'framework' and len(parts) > 1:
+                    orchestrator.context_hierarchy.project_ctx.framework = parts[1]
+                    print(f"\nProject framework set to: {parts[1]}\n")
+                else:
+                    result = orchestrator.set_project(parts[0])
+                    print(f"\n{result}\n")
+                continue
+
+            # Task commands
+            if lower_input.startswith('task:'):
+                task_desc = user_input[5:].strip()
+                result = orchestrator.set_task(task_desc, goal=task_desc)
+                print(f"\n{result}\n")
                 continue
 
             if lower_input in ['next', 'step']:
@@ -99,43 +113,29 @@ def main():
                 print(f"\nAssistant: {result}\n")
                 continue
 
-            # Handle remember command
+            # Remember/recall commands
             if lower_input.startswith('remember '):
                 parts = user_input[9:].split(' ', 1)
                 if len(parts) == 2:
                     result = orchestrator.tools.invoke('remember', key=parts[0], value=parts[1])
                     print(f"\n{result.output}\n")
-                else:
-                    print("\nUsage: remember <key> <value>\n")
                 continue
 
-            # Handle recall command
             if lower_input.startswith('recall '):
                 key = user_input[7:].strip()
                 result = orchestrator.tools.invoke('recall', key=key)
                 print(f"\n{result.output}\n")
                 continue
 
-            # Handle search command
-            if lower_input.startswith('search '):
-                query = user_input[7:].strip()
-                result = orchestrator.tools.invoke('search_memory', query=query)
-                print(f"\n{result.output}\n")
-                continue
-
-            # Handle forget command
-            if lower_input.startswith('forget '):
-                key = user_input[7:].strip()
-                result = orchestrator.tools.invoke('forget', key=key)
-                print(f"\n{result.output}\n")
-                continue
+            # Increment session message count
+            orchestrator.context_hierarchy.session_ctx.increment_messages()
 
             # Process through the orchestrator
             response = orchestrator.process(user_input)
             print(f"\nAssistant: {response}\n")
 
         except KeyboardInterrupt:
-            print("\nGoodbye! Your memory has been saved.")
+            print("\nGoodbye!")
             break
 
 

@@ -1,29 +1,46 @@
 # MCP Teaching Repository
 
-## Branch: v5-memory-guardrails
+## Branch: v6-context-hierarchy
 
-This is **Lab 5 - State, Memory, and Guardrails**: Introducing persistent memory and safety constraints to control what the assistant can and cannot do.
+This is **Lab 6 - Context Design & Hierarchy**: Organizing context into reusable layers (global, project, task) to support scalability.
 
 ### Learning Objectives
-- Implement capability boundaries for AI systems
-- Design persistent memory for stateful behavior
-- Explain why guardrails are essential in AI tooling
+- Design reusable context blocks
+- Differentiate between global and task-level context
+- Identify failure modes caused by poor context design
 
-### Key Changes from v4
-- Added `memory/` package with persistent storage
-- Added `guardrails/` package with safety rules
-- Memory survives across sessions
-- Actions are checked against guardrails
+### Key Changes from v5
+- Added `context/` package with hierarchical context
+- Four context levels: Global, Project, Task, Session
+- Modular and scalable context management
 
 ### New Files
 ```
-memory/
+context/
 ├── __init__.py
-└── store.py        # JSON-based persistent storage
+├── global_context.py    # System-wide settings
+├── project_context.py   # Project-specific context
+├── task_context.py      # Current task context
+├── session_context.py   # Session state
+└── hierarchy.py         # Context hierarchy manager
+```
 
-guardrails/
-├── __init__.py
-└── rules.py        # Safety rules and constraints
+### Context Hierarchy
+
+```
+┌─────────────────────────────────────┐
+│           GLOBAL CONTEXT            │  ← System-wide
+│   (model, settings, constraints)    │
+├─────────────────────────────────────┤
+│          PROJECT CONTEXT            │  ← Project-specific
+│   (name, language, framework)       │
+├─────────────────────────────────────┤
+│           TASK CONTEXT              │  ← Current task
+│   (title, goal, steps, files)       │
+├─────────────────────────────────────┤
+│          SESSION CONTEXT            │  ← Current session
+│   (user, topics, temp data)         │
+└─────────────────────────────────────┘
 ```
 
 ### Setup
@@ -35,59 +52,39 @@ python main.py
 
 ### Try These Experiments
 
-1. Test persistent memory:
+1. Set up project context:
    ```
-   remember name Alice
-   remember project MyApp
-   quit
-   ```
-   Then restart and:
-   ```
-   memory
-   recall name
-   ```
-   Your data persists!
-
-2. View guardrails:
-   ```
-   guardrails
+   project MyWebApp
+   project lang Python
+   project framework FastAPI
    ```
 
-3. Test guardrails (try storing a very large value):
+2. View the hierarchy:
    ```
-   remember bigdata [paste 10000+ characters]
+   hierarchy
    ```
-   It will be blocked by the memory size limit!
+
+3. Set a task in context:
+   ```
+   task: Implement user authentication
+   ```
+
+4. See how context flows into prompts - the AI now knows your project!
 
 ### Key Concepts
 
-**Persistent vs Ephemeral State:**
+**Why Hierarchy?**
+- **Separation of concerns**: Different scopes, different contexts
+- **Reusability**: Project context persists, task context changes
+- **Scalability**: Add new context levels without breaking existing ones
+
+**Context Inheritance:**
 ```
-Session Memory (v4):    Persistent Memory (v5):
-┌─────────────────┐     ┌─────────────────┐
-│  Lost on exit   │     │  Saved to disk  │
-│                 │     │                 │
-│  Fast, simple   │     │  Survives       │
-│                 │     │  restarts       │
-└─────────────────┘     └─────────────────┘
+Global: safe_mode=True
+  └─ Project: language=Python, framework=FastAPI
+       └─ Task: Implement authentication
+            └─ Session: User=Alice, Messages=5
 ```
-
-**Why Guardrails?**
-- Prevent accidental data loss (no silent deletes)
-- Block dangerous operations (no shell execution)
-- Warn about sensitive data access
-- Enforce resource limits
-
-**Default Guardrails:**
-| Rule | Severity | Description |
-|------|----------|-------------|
-| no_silent_delete | HIGH | Requires confirmation for deletions |
-| no_shell_exec | CRITICAL | Blocks shell command execution |
-| sensitive_file_warning | MEDIUM | Warns on .env, password, etc. |
-| no_system_modification | CRITICAL | Blocks system file writes |
-| memory_size_limit | LOW | Limits stored value size |
-
-The assistant is now **safe and controllable**!
 
 ---
 
@@ -99,8 +96,8 @@ The assistant is now **safe and controllable**!
 | `v2-structured-context` | Lab 2 | Externalizing context |
 | `v3-goal-agent` | Lab 3 | Goal-oriented agent |
 | `v4-mcp-roles` | Lab 4 | MCP role architecture |
-| `v5-memory-guardrails` | Lab 5 | Persistent memory + safety (current) |
-| `v6-context-hierarchy` | Lab 6 | Context blocks and hierarchy |
+| `v5-memory-guardrails` | Lab 5 | Persistent memory + safety |
+| `v6-context-hierarchy` | Lab 6 | Context hierarchy (current) |
 | `v7-execution-flow` | Lab 7 | Full MCP execution loop |
 | `v8-feedback-loop` | Lab 8 | Self-reflecting assistant |
 | `v9-prompt-vs-mcp` | Lab 9 | Prompt reduction experiment |
