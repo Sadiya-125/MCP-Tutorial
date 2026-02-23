@@ -1,46 +1,54 @@
 # MCP Teaching Repository
 
-## Branch: v6-context-hierarchy
+## Branch: v7-execution-flow
 
-This is **Lab 6 - Context Design & Hierarchy**: Organizing context into reusable layers (global, project, task) to support scalability.
+This is **Lab 7 - MCP Execution Flow**: Implementing a deterministic execution pipeline that initializes context, decides actions, and updates state.
 
 ### Learning Objectives
-- Design reusable context blocks
-- Differentiate between global and task-level context
-- Identify failure modes caused by poor context design
+- Describe the MCP execution lifecycle
+- Implement deterministic execution pipelines
+- Trace how context flows through an AI system
 
-### Key Changes from v5
-- Added `context/` package with hierarchical context
-- Four context levels: Global, Project, Task, Session
-- Modular and scalable context management
+### Key Changes from v6
+- Added `execution/` package with pipeline
+- 5-step deterministic execution flow
+- Traceable execution history
 
-### New Files
-```
-context/
-├── __init__.py
-├── global_context.py    # System-wide settings
-├── project_context.py   # Project-specific context
-├── task_context.py      # Current task context
-├── session_context.py   # Session state
-└── hierarchy.py         # Context hierarchy manager
-```
-
-### Context Hierarchy
+### Pipeline Steps
 
 ```
-┌─────────────────────────────────────┐
-│           GLOBAL CONTEXT            │  ← System-wide
-│   (model, settings, constraints)    │
-├─────────────────────────────────────┤
-│          PROJECT CONTEXT            │  ← Project-specific
-│   (name, language, framework)       │
-├─────────────────────────────────────┤
-│           TASK CONTEXT              │  ← Current task
-│   (title, goal, steps, files)       │
-├─────────────────────────────────────┤
-│          SESSION CONTEXT            │  ← Current session
-│   (user, topics, temp data)         │
-└─────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────┐
+│                    USER INPUT                           │
+└─────────────────────┬───────────────────────────────────┘
+                      ▼
+┌─────────────────────────────────────────────────────────┐
+│  1. INITIALIZE CONTEXT                                  │
+│     Load context from all sources                       │
+└─────────────────────┬───────────────────────────────────┘
+                      ▼
+┌─────────────────────────────────────────────────────────┐
+│  2. INTERPRET INSTRUCTION                               │
+│     Parse and understand user intent                    │
+└─────────────────────┬───────────────────────────────────┘
+                      ▼
+┌─────────────────────────────────────────────────────────┐
+│  3. DECIDE ACTION                                       │
+│     Choose: command, goal, or question                  │
+└─────────────────────┬───────────────────────────────────┘
+                      ▼
+┌─────────────────────────────────────────────────────────┐
+│  4. INVOKE ACTION                                       │
+│     Execute tool or generate response                   │
+└─────────────────────┬───────────────────────────────────┘
+                      ▼
+┌─────────────────────────────────────────────────────────┐
+│  5. UPDATE STATE                                        │
+│     Save results and update context                     │
+└─────────────────────┬───────────────────────────────────┘
+                      ▼
+┌─────────────────────────────────────────────────────────┐
+│                     OUTPUT                              │
+└─────────────────────────────────────────────────────────┘
 ```
 
 ### Setup
@@ -52,39 +60,28 @@ python main.py
 
 ### Try These Experiments
 
-1. Set up project context:
+1. View pipeline status:
    ```
-   project MyWebApp
-   project lang Python
-   project framework FastAPI
+   pipeline
    ```
 
-2. View the hierarchy:
+2. Run with trace to see execution flow:
    ```
-   hierarchy
-   ```
-
-3. Set a task in context:
-   ```
-   task: Implement user authentication
+   trace What is Python?
+   trace goal: Build a REST API
    ```
 
-4. See how context flows into prompts - the AI now knows your project!
+3. See execution history after multiple queries
 
 ### Key Concepts
 
-**Why Hierarchy?**
-- **Separation of concerns**: Different scopes, different contexts
-- **Reusability**: Project context persists, task context changes
-- **Scalability**: Add new context levels without breaking existing ones
+**Why Deterministic Pipelines?**
+- **Predictability**: Same input → same flow
+- **Debuggability**: Trace exactly what happened
+- **Testability**: Test each step independently
+- **Control**: Modify specific steps without breaking others
 
-**Context Inheritance:**
-```
-Global: safe_mode=True
-  └─ Project: language=Python, framework=FastAPI
-       └─ Task: Implement authentication
-            └─ Session: User=Alice, Messages=5
-```
+This is the **core MCP runtime**!
 
 ---
 
@@ -97,8 +94,8 @@ Global: safe_mode=True
 | `v3-goal-agent` | Lab 3 | Goal-oriented agent |
 | `v4-mcp-roles` | Lab 4 | MCP role architecture |
 | `v5-memory-guardrails` | Lab 5 | Persistent memory + safety |
-| `v6-context-hierarchy` | Lab 6 | Context hierarchy (current) |
-| `v7-execution-flow` | Lab 7 | Full MCP execution loop |
+| `v6-context-hierarchy` | Lab 6 | Context hierarchy |
+| `v7-execution-flow` | Lab 7 | Execution pipeline (current) |
 | `v8-feedback-loop` | Lab 8 | Self-reflecting assistant |
 | `v9-prompt-vs-mcp` | Lab 9 | Prompt reduction experiment |
 | `v10-file-docking` | Lab 10 | Editor and file dock |

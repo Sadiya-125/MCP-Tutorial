@@ -1,55 +1,56 @@
 """
-Lab 6: Context Design & Hierarchy
-==================================
-Building on Lab 5, we organize context into reusable, hierarchical layers.
+Lab 7: MCP Execution Flow
+=========================
+Building on Lab 6, we implement a deterministic execution pipeline.
 
-Key Changes from Lab 5:
-- Added context/ package with hierarchy
-- Context levels: Global, Project, Task, Session
-- Modular and scalable context management
+Key Changes from Lab 6:
+- Added execution/ package with pipeline
+- Deterministic 5-step execution flow
+- Traceable execution history
 
 Key Learning Points:
-- Global vs local context
-- Reusable context schemas
-- Failure modes from poor context design
+- Deterministic execution pipelines
+- Why execution flow matters more than prompts
+- Context flows through the pipeline
 """
 
 from mcp import Orchestrator
+from execution.pipeline import create_mcp_pipeline
 
 
 def main():
     """
-    Main interaction loop with context hierarchy.
+    Main interaction loop with deterministic execution pipeline.
 
-    Context Layers:
-    1. Global - System-wide settings
-    2. Project - Project-specific context
-    3. Task - Current task context
-    4. Session - Current session state
+    Pipeline Steps:
+    1. Initialize Context
+    2. Interpret Instruction
+    3. Decide Action
+    4. Invoke Tool/Generate Response
+    5. Update State
     """
     print("=" * 60)
-    print("Lab 6: Context Design & Hierarchy")
+    print("Lab 7: MCP Execution Flow")
     print("=" * 60)
-    print("\nContext is now MODULAR and SCALABLE.")
-    print("\nContext Layers:")
-    print("  - Global: System-wide settings")
-    print("  - Project: Project-specific context")
-    print("  - Task: Current task context")
-    print("  - Session: Current session state")
+    print("\nExecution is now DETERMINISTIC and TRACEABLE.")
+    print("\nPipeline Steps:")
+    print("  1. Initialize Context")
+    print("  2. Interpret Instruction")
+    print("  3. Decide Action")
+    print("  4. Invoke Tool")
+    print("  5. Update State")
     print("\nCommands:")
+    print("  'pipeline' - View pipeline status")
+    print("  'trace' - Run with visible trace")
     print("  'hierarchy' - View context hierarchy")
-    print("  'project <name>' - Set project name")
-    print("  'project lang <language>' - Set project language")
-    print("  'project framework <framework>' - Set framework")
-    print("  'task: <description>' - Set current task")
     print("  'status' - View system status")
-    print("  'memory' - View persistent memory")
     print("  'quit' - Exit")
     print("\n" + "-" * 60 + "\n")
 
     orchestrator = Orchestrator(use_persistent_memory=True)
+    pipeline = create_mcp_pipeline(orchestrator)
 
-    # Show initial memory state
+    # Show initial state
     if orchestrator.persistent_memory:
         stats = orchestrator.persistent_memory.get_stats()
         if stats['total_entries'] > 0:
@@ -72,6 +73,15 @@ def main():
                 print(f"\n{orchestrator.get_status()}\n")
                 continue
 
+            if lower_input == 'pipeline':
+                print(f"\n{pipeline.get_status()}\n")
+                history = pipeline.get_history()
+                if history:
+                    print(f"Executions: {len(history)}")
+                    last = history[-1]
+                    print(f"Last: {last['duration_ms']:.1f}ms, {last['steps_completed']} steps\n")
+                continue
+
             if lower_input == 'hierarchy':
                 print(f"\n{orchestrator.get_context_summary()}\n")
                 continue
@@ -79,60 +89,53 @@ def main():
             if lower_input == 'memory':
                 if orchestrator.persistent_memory:
                     print(f"\n{orchestrator.persistent_memory.to_context_string()}\n")
+                continue
+
+            # Trace mode - show pipeline execution
+            if lower_input.startswith('trace '):
+                query = user_input[6:].strip()
+                print("\n--- Pipeline Execution Trace ---")
+
+                # Execute through pipeline
+                result = pipeline.execute({"user_input": query})
+
+                print(f"\nSteps completed: {result.steps_completed}")
+                print(f"Duration: {result.duration_ms:.1f}ms")
+                print(f"Success: {result.success}")
+
+                if result.success:
+                    print(f"\nOutput:\n{result.output}\n")
                 else:
-                    print("\nPersistent memory not enabled.\n")
+                    print(f"\nError: {result.error}\n")
                 continue
 
-            if lower_input == 'guardrails':
-                print(f"\n{orchestrator.get_guardrail_status()}\n")
-                continue
-
-            # Project commands
+            # Project/task commands
             if lower_input.startswith('project '):
                 parts = user_input[8:].split(' ', 1)
                 if parts[0].lower() == 'lang' and len(parts) > 1:
                     orchestrator.context_hierarchy.project_ctx.language = parts[1]
-                    print(f"\nProject language set to: {parts[1]}\n")
+                    print(f"\nProject language: {parts[1]}\n")
                 elif parts[0].lower() == 'framework' and len(parts) > 1:
                     orchestrator.context_hierarchy.project_ctx.framework = parts[1]
-                    print(f"\nProject framework set to: {parts[1]}\n")
+                    print(f"\nProject framework: {parts[1]}\n")
                 else:
-                    result = orchestrator.set_project(parts[0])
-                    print(f"\n{result}\n")
+                    orchestrator.set_project(parts[0])
+                    print(f"\nProject set: {parts[0]}\n")
                 continue
 
-            # Task commands
             if lower_input.startswith('task:'):
                 task_desc = user_input[5:].strip()
-                result = orchestrator.set_task(task_desc, goal=task_desc)
-                print(f"\n{result}\n")
+                orchestrator.set_task(task_desc, goal=task_desc)
+                print(f"\nTask started: {task_desc}\n")
                 continue
 
-            if lower_input in ['next', 'step']:
-                result = orchestrator.execute_step()
-                print(f"\nAssistant: {result}\n")
-                continue
+            # Execute through pipeline
+            result = pipeline.execute({"user_input": user_input})
 
-            # Remember/recall commands
-            if lower_input.startswith('remember '):
-                parts = user_input[9:].split(' ', 1)
-                if len(parts) == 2:
-                    result = orchestrator.tools.invoke('remember', key=parts[0], value=parts[1])
-                    print(f"\n{result.output}\n")
-                continue
-
-            if lower_input.startswith('recall '):
-                key = user_input[7:].strip()
-                result = orchestrator.tools.invoke('recall', key=key)
-                print(f"\n{result.output}\n")
-                continue
-
-            # Increment session message count
-            orchestrator.context_hierarchy.session_ctx.increment_messages()
-
-            # Process through the orchestrator
-            response = orchestrator.process(user_input)
-            print(f"\nAssistant: {response}\n")
+            if result.success:
+                print(f"\nAssistant: {result.output}\n")
+            else:
+                print(f"\nError: {result.error}\n")
 
         except KeyboardInterrupt:
             print("\nGoodbye!")
