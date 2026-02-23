@@ -1,21 +1,46 @@
 # MCP Teaching Repository
 
-## Branch: v3-goal-agent
+## Branch: v4-mcp-roles
 
-This is **Lab 3 - From Chatbot to Agent**: Adding goals and a basic task loop so the assistant works step-by-step instead of responding once.
+This is **Lab 4 - MCP Role Architecture**: Refactoring the system into clear MCP roles (orchestrator, reasoner, tool handler, memory manager).
 
 ### Learning Objectives
-- Explain the difference between reactive and goal-driven AI systems
-- Implement a task-oriented agent loop
-- Describe how agent behavior emerges from context and goals
+- Identify key MCP roles and responsibilities
+- Design a modular AI system architecture
+- Justify role separation in MCP-based systems
 
-### Key Changes from v2
-- Added `agent.py` with Goal and Agent classes
-- Agent can decompose goals into steps
-- Step-by-step execution with progress tracking
+### Key Changes from v3
+- Created `mcp/` package with modular components
+- Separated concerns into distinct roles
+- Clean interfaces between components
 
 ### New Files
-- `agent.py` - Goal-oriented agent with planning and execution
+```
+mcp/
+├── __init__.py       # Package exports
+├── orchestrator.py   # Coordinates execution flow
+├── reasoner.py       # All LLM interactions
+├── tool_handler.py   # Tool registration and execution
+└── memory_manager.py # State and persistence
+```
+
+### MCP Architecture
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                     ORCHESTRATOR                        │
+│              (Coordinates everything)                   │
+├─────────────┬─────────────────┬────────────────────────┤
+│   REASONER  │  TOOL HANDLER   │    MEMORY MANAGER      │
+│   (LLM AI)  │   (Actions)     │      (State)           │
+└─────────────┴─────────────────┴────────────────────────┘
+```
+
+**Why this separation?**
+- **Orchestrator**: Single point of control, easy to modify flow
+- **Reasoner**: All AI calls in one place, easy to swap models
+- **Tool Handler**: Actions are controlled and auditable
+- **Memory Manager**: State is centralized and persistent
 
 ### Setup
 
@@ -26,51 +51,59 @@ python main.py
 
 ### Try These Experiments
 
-1. Set a goal:
-   ```
-   goal: Create a Python function to validate email addresses
-   ```
-
-2. View the generated plan:
+1. Check system status:
    ```
    status
    ```
 
-3. Execute step by step:
+2. List available tools:
    ```
-   next
-   next
-   next
+   tools
    ```
 
-4. Or run all steps automatically:
+3. Use memory:
    ```
-   goal: Build a simple calculator class
-   run all
+   remember project MyAwesomeApp
+   recall project
+   memory
+   ```
+
+4. Set a goal:
+   ```
+   goal: Create a function to parse JSON
+   next
+   next
    ```
 
 ### Key Concepts
 
-**Reactive Chatbot (v1-v2):**
-```
-User: "How do I validate emails?"
-Bot: [Answers question]
-User: "Now add error handling"
-Bot: [Doesn't remember previous context]
-```
-
-**Goal-Driven Agent (v3):**
-```
-User: "goal: Create email validation with error handling"
-Agent: [Plans steps]
-  1. Create base validation function
-  2. Add regex pattern matching
-  3. Add error handling
-  4. Write tests
-Agent: [Executes each step, maintaining context]
+**Before (v3) - Monolithic:**
+```python
+class Agent:
+    def process(self, input):
+        # Everything mixed together:
+        # - LLM calls
+        # - Tool execution
+        # - State management
+        # - Flow control
 ```
 
-The assistant now **acts** towards goals, not just **responds** to questions!
+**After (v4) - Modular MCP:**
+```python
+class Orchestrator:
+    def __init__(self):
+        self.reasoner = Reasoner()      # AI reasoning
+        self.tools = ToolHandler()       # Actions
+        self.memory = MemoryManager()    # State
+
+    def process(self, input):
+        # Clear flow with role separation
+        intent = self.reasoner.interpret(input)
+        result = self.tools.invoke(...)
+        self.memory.store(...)
+```
+
+This is the **MCP "dock" structure** - modular and extensible!
 
 ---
 
@@ -80,9 +113,9 @@ The assistant now **acts** towards goals, not just **responds** to questions!
 |--------|-----|-------------|
 | `v1-prompt-baseline` | Lab 1 | Naive prompt-based assistant |
 | `v2-structured-context` | Lab 2 | Externalizing context |
-| `v3-goal-agent` | Lab 3 | Goal-oriented agent (current) |
-| `v4-mcp-roles` | Lab 4 | MCP role architecture skeleton |
-| `v5-memory-guardrails` | Lab 5 | Persistent memory and safety constraints |
+| `v3-goal-agent` | Lab 3 | Goal-oriented agent |
+| `v4-mcp-roles` | Lab 4 | MCP role architecture (current) |
+| `v5-memory-guardrails` | Lab 5 | Persistent memory and safety |
 | `v6-context-hierarchy` | Lab 6 | Context blocks and hierarchy |
 | `v7-execution-flow` | Lab 7 | Full MCP execution loop |
 | `v8-feedback-loop` | Lab 8 | Self-reflecting assistant |
