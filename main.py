@@ -1,19 +1,18 @@
 """
-Lab 4: MCP Role Architecture
-============================
-Building on Lab 3, we refactor into clear MCP roles with separation of concerns.
+Lab 5: State, Memory, and Guardrails
+=====================================
+Building on Lab 4, we add persistent memory and safety constraints.
 
-Key Changes from Lab 3:
-- Created mcp/ package with modular components
-- Orchestrator: coordinates execution
-- Reasoner: handles all LLM interactions
-- ToolHandler: manages tool execution
-- MemoryManager: handles state and persistence
+Key Changes from Lab 4:
+- Added memory/ package with persistent storage
+- Added guardrails/ package with safety rules
+- Memory survives across sessions
+- Actions are checked against guardrails
 
 Key Learning Points:
-- Why monolithic AI systems fail
-- MCP role separation and boundaries
-- Designing modular AI system architecture
+- Persistent vs ephemeral state
+- Why AI needs rules
+- Implementing capability boundaries
 """
 
 from mcp import Orchestrator
@@ -21,38 +20,42 @@ from mcp import Orchestrator
 
 def main():
     """
-    Main interaction loop using MCP architecture.
+    Main interaction loop with persistent memory and guardrails.
 
-    The system is now modular:
-    - Orchestrator handles the flow
-    - Reasoner does AI reasoning
-    - Tools execute actions
-    - Memory manages state
-
-    This is the MCP "dock" structure!
+    New features:
+    - Memory persists to disk (memory/data/memory.json)
+    - Safety guardrails check all actions
+    - Warnings for potentially sensitive operations
     """
     print("=" * 60)
-    print("Lab 4: MCP Role Architecture")
+    print("Lab 5: State, Memory, and Guardrails")
     print("=" * 60)
-    print("\nThe system is now modular with clear role separation.")
-    print("\nMCP Components:")
-    print("  - Orchestrator: Coordinates the flow")
-    print("  - Reasoner: LLM-based reasoning")
-    print("  - ToolHandler: Executes actions")
-    print("  - MemoryManager: Manages state")
+    print("\nThe assistant is now SAFE and PERSISTENT.")
+    print("\nNew Features:")
+    print("  - Memory persists across sessions (to disk)")
+    print("  - Safety guardrails check all actions")
+    print("  - Warnings for sensitive operations")
     print("\nCommands:")
-    print("  'status' - View MCP system status")
-    print("  'memory' - View current memory")
-    print("  'tools' - List available tools")
+    print("  'status' - View system status")
+    print("  'memory' - View persistent memory")
+    print("  'guardrails' - View safety rules")
+    print("  'remember <key> <value>' - Store persistently")
+    print("  'recall <key>' - Retrieve from memory")
+    print("  'search <query>' - Search memory")
+    print("  'forget <key>' - Remove from memory")
     print("  'goal: <description>' - Set a goal")
     print("  'next' - Execute next step")
-    print("  'remember <key> <value>' - Store in memory")
-    print("  'recall <key>' - Retrieve from memory")
     print("  'quit' - Exit")
     print("\n" + "-" * 60 + "\n")
 
-    # Create the MCP orchestrator
-    orchestrator = Orchestrator()
+    # Create the MCP orchestrator with persistent memory
+    orchestrator = Orchestrator(use_persistent_memory=True)
+
+    # Show initial memory state
+    if orchestrator.persistent_memory:
+        stats = orchestrator.persistent_memory.get_stats()
+        if stats['total_entries'] > 0:
+            print(f"Loaded {stats['total_entries']} entries from persistent memory.\n")
 
     while True:
         try:
@@ -65,7 +68,7 @@ def main():
 
             # Handle special commands
             if lower_input in ['quit', 'exit', 'q']:
-                print("Goodbye!")
+                print("Goodbye! Your memory has been saved.")
                 break
 
             if lower_input == 'status':
@@ -73,7 +76,14 @@ def main():
                 continue
 
             if lower_input == 'memory':
-                print(f"\n{orchestrator.memory.to_context_string()}\n")
+                if orchestrator.persistent_memory:
+                    print(f"\n{orchestrator.persistent_memory.to_context_string()}\n")
+                else:
+                    print("\nPersistent memory not enabled.\n")
+                continue
+
+            if lower_input == 'guardrails':
+                print(f"\n{orchestrator.get_guardrail_status()}\n")
                 continue
 
             if lower_input == 'tools':
@@ -106,12 +116,26 @@ def main():
                 print(f"\n{result.output}\n")
                 continue
 
+            # Handle search command
+            if lower_input.startswith('search '):
+                query = user_input[7:].strip()
+                result = orchestrator.tools.invoke('search_memory', query=query)
+                print(f"\n{result.output}\n")
+                continue
+
+            # Handle forget command
+            if lower_input.startswith('forget '):
+                key = user_input[7:].strip()
+                result = orchestrator.tools.invoke('forget', key=key)
+                print(f"\n{result.output}\n")
+                continue
+
             # Process through the orchestrator
             response = orchestrator.process(user_input)
             print(f"\nAssistant: {response}\n")
 
         except KeyboardInterrupt:
-            print("\nGoodbye!")
+            print("\nGoodbye! Your memory has been saved.")
             break
 
 

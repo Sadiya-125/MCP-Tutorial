@@ -1,46 +1,30 @@
 # MCP Teaching Repository
 
-## Branch: v4-mcp-roles
+## Branch: v5-memory-guardrails
 
-This is **Lab 4 - MCP Role Architecture**: Refactoring the system into clear MCP roles (orchestrator, reasoner, tool handler, memory manager).
+This is **Lab 5 - State, Memory, and Guardrails**: Introducing persistent memory and safety constraints to control what the assistant can and cannot do.
 
 ### Learning Objectives
-- Identify key MCP roles and responsibilities
-- Design a modular AI system architecture
-- Justify role separation in MCP-based systems
+- Implement capability boundaries for AI systems
+- Design persistent memory for stateful behavior
+- Explain why guardrails are essential in AI tooling
 
-### Key Changes from v3
-- Created `mcp/` package with modular components
-- Separated concerns into distinct roles
-- Clean interfaces between components
+### Key Changes from v4
+- Added `memory/` package with persistent storage
+- Added `guardrails/` package with safety rules
+- Memory survives across sessions
+- Actions are checked against guardrails
 
 ### New Files
 ```
-mcp/
-├── __init__.py       # Package exports
-├── orchestrator.py   # Coordinates execution flow
-├── reasoner.py       # All LLM interactions
-├── tool_handler.py   # Tool registration and execution
-└── memory_manager.py # State and persistence
-```
+memory/
+├── __init__.py
+└── store.py        # JSON-based persistent storage
 
-### MCP Architecture
-
+guardrails/
+├── __init__.py
+└── rules.py        # Safety rules and constraints
 ```
-┌─────────────────────────────────────────────────────────┐
-│                     ORCHESTRATOR                        │
-│              (Coordinates everything)                   │
-├─────────────┬─────────────────┬────────────────────────┤
-│   REASONER  │  TOOL HANDLER   │    MEMORY MANAGER      │
-│   (LLM AI)  │   (Actions)     │      (State)           │
-└─────────────┴─────────────────┴────────────────────────┘
-```
-
-**Why this separation?**
-- **Orchestrator**: Single point of control, easy to modify flow
-- **Reasoner**: All AI calls in one place, easy to swap models
-- **Tool Handler**: Actions are controlled and auditable
-- **Memory Manager**: State is centralized and persistent
 
 ### Setup
 
@@ -51,59 +35,59 @@ python main.py
 
 ### Try These Experiments
 
-1. Check system status:
+1. Test persistent memory:
    ```
-   status
+   remember name Alice
+   remember project MyApp
+   quit
    ```
-
-2. List available tools:
+   Then restart and:
    ```
-   tools
-   ```
-
-3. Use memory:
-   ```
-   remember project MyAwesomeApp
-   recall project
    memory
+   recall name
+   ```
+   Your data persists!
+
+2. View guardrails:
+   ```
+   guardrails
    ```
 
-4. Set a goal:
+3. Test guardrails (try storing a very large value):
    ```
-   goal: Create a function to parse JSON
-   next
-   next
+   remember bigdata [paste 10000+ characters]
    ```
+   It will be blocked by the memory size limit!
 
 ### Key Concepts
 
-**Before (v3) - Monolithic:**
-```python
-class Agent:
-    def process(self, input):
-        # Everything mixed together:
-        # - LLM calls
-        # - Tool execution
-        # - State management
-        # - Flow control
+**Persistent vs Ephemeral State:**
+```
+Session Memory (v4):    Persistent Memory (v5):
+┌─────────────────┐     ┌─────────────────┐
+│  Lost on exit   │     │  Saved to disk  │
+│                 │     │                 │
+│  Fast, simple   │     │  Survives       │
+│                 │     │  restarts       │
+└─────────────────┘     └─────────────────┘
 ```
 
-**After (v4) - Modular MCP:**
-```python
-class Orchestrator:
-    def __init__(self):
-        self.reasoner = Reasoner()      # AI reasoning
-        self.tools = ToolHandler()       # Actions
-        self.memory = MemoryManager()    # State
+**Why Guardrails?**
+- Prevent accidental data loss (no silent deletes)
+- Block dangerous operations (no shell execution)
+- Warn about sensitive data access
+- Enforce resource limits
 
-    def process(self, input):
-        # Clear flow with role separation
-        intent = self.reasoner.interpret(input)
-        result = self.tools.invoke(...)
-        self.memory.store(...)
-```
+**Default Guardrails:**
+| Rule | Severity | Description |
+|------|----------|-------------|
+| no_silent_delete | HIGH | Requires confirmation for deletions |
+| no_shell_exec | CRITICAL | Blocks shell command execution |
+| sensitive_file_warning | MEDIUM | Warns on .env, password, etc. |
+| no_system_modification | CRITICAL | Blocks system file writes |
+| memory_size_limit | LOW | Limits stored value size |
 
-This is the **MCP "dock" structure** - modular and extensible!
+The assistant is now **safe and controllable**!
 
 ---
 
@@ -114,8 +98,8 @@ This is the **MCP "dock" structure** - modular and extensible!
 | `v1-prompt-baseline` | Lab 1 | Naive prompt-based assistant |
 | `v2-structured-context` | Lab 2 | Externalizing context |
 | `v3-goal-agent` | Lab 3 | Goal-oriented agent |
-| `v4-mcp-roles` | Lab 4 | MCP role architecture (current) |
-| `v5-memory-guardrails` | Lab 5 | Persistent memory and safety |
+| `v4-mcp-roles` | Lab 4 | MCP role architecture |
+| `v5-memory-guardrails` | Lab 5 | Persistent memory + safety (current) |
 | `v6-context-hierarchy` | Lab 6 | Context blocks and hierarchy |
 | `v7-execution-flow` | Lab 7 | Full MCP execution loop |
 | `v8-feedback-loop` | Lab 8 | Self-reflecting assistant |
