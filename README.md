@@ -1,49 +1,70 @@
 # MCP Teaching Repository
 
-## Branch: v1-prompt-baseline
+## Branch: v2-structured-context
 
-This is **Lab 1 - Prompt-Only Baseline**: A simple prompt-based coding assistant to observe how AI fails without structure, memory, or context.
+This is **Lab 2 - Externalizing Context**: Separating prompts from context by moving task details and state into a structured context object.
 
 ### Learning Objectives
-- Understand what "context" means in AI systems
-- Identify limitations of prompt-only chatbots
-- Observe why naive prompting fails for coding tasks
+- Distinguish between prompts, context, and memory
+- Externalize context from prompts into structured data
+- Reduce prompt length without losing behavior
 
-### Key Observations
-- **No memory**: Each interaction starts fresh
-- **No structure**: Everything embedded in prompts
-- **No predictability**: Responses vary wildly
+### Key Changes from v1
+- Added `context.py` with structured context objects
+- Prompts are now minimal - context is injected separately
+- The assistant can "remember" within a session
+
+### New Files
+- `context.py` - Structured context with TaskInfo, FileInfo, and Context classes
 
 ### Setup
 
 ```bash
-# Install dependencies
 pip install -r requirements.txt
-
-# Set your OpenAI API key in .env
-echo "OPENAI_API_KEY=your-key-here" > .env
-
-# Run the assistant
 python main.py
 ```
 
 ### Try These Experiments
 
-1. Ask: "Remember that my name is Alice"
-2. Then ask: "What is my name?"
-3. Observe: It doesn't remember!
+1. Set your context:
+   ```
+   my name is Alice
+   task: Build a REST API
+   working on api.py
+   using FastAPI
+   ```
 
-4. Ask: "I'm working on a Python web app using Flask"
-5. Then ask: "What framework am I using?"
-6. Observe: Context is lost!
+2. Ask questions that reference context:
+   ```
+   What am I working on?
+   What's my current task?
+   ```
 
-### What's Missing?
-- Persistent memory
-- Structured context
-- State management
-- Predictable behavior
+3. View the structured context:
+   ```
+   context
+   ```
 
-This establishes the **baseline failure case** that MCP will fix in subsequent lessons.
+### Key Concepts
+
+**Before (v1):**
+```python
+# Everything in the prompt
+prompt = "I'm Alice, working on api.py using FastAPI, building a REST API..."
+```
+
+**After (v2):**
+```python
+# Structured context object
+context = Context(
+    user_name="Alice",
+    task=TaskInfo(description="Build a REST API"),
+    file_info=FileInfo(current_file="api.py", framework="FastAPI")
+)
+# Prompt is minimal - context injected separately
+```
+
+This is the **first MCP-style separation** - prompts become minimal!
 
 ---
 
@@ -51,8 +72,8 @@ This establishes the **baseline failure case** that MCP will fix in subsequent l
 
 | Branch | Lab | Description |
 |--------|-----|-------------|
-| `v1-prompt-baseline` | Lab 1 | Naive prompt-based assistant (current) |
-| `v2-structured-context` | Lab 2 | Externalizing context into structured data |
+| `v1-prompt-baseline` | Lab 1 | Naive prompt-based assistant |
+| `v2-structured-context` | Lab 2 | Externalizing context (current) |
 | `v3-goal-agent` | Lab 3 | Goal-oriented assistant with task loops |
 | `v4-mcp-roles` | Lab 4 | MCP role architecture skeleton |
 | `v5-memory-guardrails` | Lab 5 | Persistent memory and safety constraints |
@@ -64,10 +85,3 @@ This establishes the **baseline failure case** that MCP will fix in subsequent l
 | `v11-codebase-aware` | Lab 11 | Codebase-aware assistant |
 | `v12-final-mcp` | Lab 12 | Final MCP docked system |
 | `main` | Final | Complete MCP implementation |
-
-```bash
-# Switch between versions
-git checkout v1-prompt-baseline
-git checkout v2-structured-context
-# ... etc
-```
